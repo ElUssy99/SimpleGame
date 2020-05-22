@@ -5,9 +5,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.Array;
 
+import java.util.Iterator;
 
 public class SpritesheetGame implements ApplicationListener {
 
@@ -16,8 +20,11 @@ public class SpritesheetGame implements ApplicationListener {
 	Animation<TextureRegion> walkAnimation;
 	Texture walkSheet;
 	SpriteBatch spriteBatch;
+	Sprite sprite;
 
+	private long last;
 	float stateTime;
+	private Array<Rectangle> posiciones;
 
 	@Override
 	public void create() {
@@ -34,10 +41,25 @@ public class SpritesheetGame implements ApplicationListener {
 			}
 		}
 
-		walkAnimation = new Animation<TextureRegion>(0.025f, walkFrames);
+		walkAnimation = new Animation<TextureRegion>(0.020f, walkFrames);
 
 		spriteBatch = new SpriteBatch();
 		stateTime = 0f;
+
+		sprite = new Sprite(walkSheet);
+		sprite.setPosition(0,10);
+
+		posiciones = new Array<>();
+		spawnRaindrop();
+	}
+
+	private void spawnRaindrop() {
+		Rectangle rec = new Rectangle();
+		rec.y = 100;
+		rec.x = 100;
+		rec.width = 100;
+		rec.height = 100;
+		posiciones.add(rec);
 	}
 
 	@Override
@@ -52,7 +74,17 @@ public class SpritesheetGame implements ApplicationListener {
 
 		TextureRegion currentFrame = walkAnimation.getKeyFrame(stateTime, true);
 		spriteBatch.begin();
-		spriteBatch.draw(currentFrame, 100, 100);
+
+		for ( Rectangle rec :  posiciones) {
+			spriteBatch.draw(currentFrame, rec.x, rec.y);
+		}
+
+		for (Iterator<Rectangle> iter = posiciones.iterator(); iter.hasNext(); ) {
+			Rectangle raindrop = iter.next();
+			raindrop.x += 150 * Gdx.graphics.getDeltaTime();
+			if(raindrop.x - 64 < 0) iter.remove();
+		}
+
 		spriteBatch.end();
 	}
 
